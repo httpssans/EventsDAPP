@@ -1,0 +1,22 @@
+{
+  "name": "events-dapp",
+  "version": "1.0.0",
+  "description": "A decentralized Event RSVP DApp",
+  "scripts": {
+    "test": "truffle test",
+    "dev": "lite-server"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "lite-server": "^2.6.1",
+    "path": "^0.12.7",
+    "tailwindcss": "^4.1.4",
+    "web3": "^1.7.4"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.0.0",
+    "solc": "^0.8.0",
+    "truffle": "^5.11.5"
+  }
+}
