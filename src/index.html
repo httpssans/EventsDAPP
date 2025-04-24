@@ -1,66 +1,504 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Election Results</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    .slide-button {
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      transition: color 0.3s ease;
+    }
+    .slide-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      transition: left 0.3s ease;
+      z-index: -1;
+    }
+    .slide-button:hover::before {
+      left: 0;
+    }
+    .slide-button:hover {
+      color: #ffffff;
+    }
+    .file-input-label {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #e5e7eb;
+      color: black;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .file-input-label:hover {
+      background-color: #d1d5db;
+    }
+    .file-input {
+      display: none;
+    }
+    .navbar-box {
+      background: white;
+      border-bottom: 2px solid #d1d5db;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { createRoot } = ReactDOM;
 
-    <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    const contractABI = [
+      {
+        "constant": true,
+        "inputs": [],
+        "name": "RSVP_FEE",
+        "outputs": [{ "name": "", "type": "uint256" }],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [],
+        "name": "eventCount",
+        "outputs": [{ "name": "", "type": "uint256" }],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [{ "name": "", "type": "uint256" }],
+        "name": "events",
+        "outputs": [
+          { "name": "name", "type": "string" },
+          { "name": "creator", "type": "address" },
+          { "name": "rsvpFee", "type": "uint256" },
+          { "name": "votingOptions", "type": "string[]" },
+          { "name": "imageUrl", "type": "string" }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [{ "name": "", "type": "uint256" }],
+        "name": "votingOptions",
+        "outputs": [{ "name": "", "type": "string[]" }],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [
+          { "name": "", "type": "uint256" },
+          { "name": "", "type": "address" }
+        ],
+        "name": "hasRSVPed",
+        "outputs": [{ "name": "", "type": "bool" }],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": false, "name": "eventId", "type": "uint256" },
+          { "indexed": false, "name": "name", "type": "string" },
+          { "indexed": false, "name": "creator", "type": "address" },
+          { "indexed": false, "name": "imageUrl", "type": "string" }
+        ],
+        "name": "EventCreated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": false, "name": "eventId", "type": "uint256" },
+          { "indexed": false, "name": "attendee", "type": "address" }
+        ],
+        "name": "RSVPConfirmed",
+        "type": "event"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          { "name": "_name", "type": "string" },
+          { "name": "_votingOptions", "type": "string[]" },
+          { "name": "_imageUrl", "type": "string" }
+        ],
+        "name": "createEvent",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [{ "name": "_eventId", "type": "uint256" }],
+        "name": "rsvp",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [],
+        "name": "getAllEvents",
+        "outputs": [
+          {
+            "components": [
+              { "name": "name", "type": "string" },
+              { "name": "creator", "type": "address" },
+              { "name": "rsvpFee", "type": "uint256" },
+              { "name": "votingOptions", "type": "string[]" },
+              { "name": "imageUrl", "type": "string" }
+            ],
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [{ "name": "_eventId", "type": "uint256" }],
+        "name": "getEventDetails",
+        "outputs": [
+          { "name": "", "type": "string" },
+          { "name": "", "type": "address" },
+          { "name": "", "type": "uint256" },
+          { "name": "", "type": "string[]" },
+          { "name": "", "type": "string" }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [{ "name": "", "type": "uint256" }],
+        "name": "eventFunds",
+        "outputs": [{ "name": "", "type": "uint256" }],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [
+          { "name": "_eventId", "type": "uint256" },
+          { "name": "_user", "type": "address" }
+        ],
+        "name": "hasUserRSVPed",
+        "outputs": [{ "name": "", "type": "bool" }],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div class="container" style="width: 650px;">
-      <div class="row">
-        <div class="col-lg-12">
-          <h1 class="text-center">Election Results</h1>
-          <hr/>
-          <br/>
-          <div id="loader">
-            <p class="text-center">Loading...</p>
+    const contractAddress = "0xe43A7Bd6cceAC7156D78973A9F2f71638cE2F7fa"; // Replace with actual address from truffle migrate --reset
+
+    function App() {
+      const [web3, setWeb3] = useState(null);
+      const [account, setAccount] = useState(null);
+      const [contract, setContract] = useState(null);
+      const [events, setEvents] = useState([]);
+      const [eventName, setEventName] = useState("");
+      const [votingOptions, setVotingOptions] = useState("");
+      const [selectedFile, setSelectedFile] = useState(null);
+      const [imageUrl, setImageUrl] = useState("");
+      const [rsvpStatus, setRsvpStatus] = useState({});
+
+      useEffect(() => {
+        async function init() {
+          console.log("Initializing Web3...");
+          if (window.ethereum) {
+            const web3Instance = new Web3(window.ethereum);
+            setWeb3(web3Instance);
+            try {
+              console.log("Requesting accounts...");
+              await window.ethereum.request({ method: "eth_requestAccounts" });
+              const accounts = await web3Instance.eth.getAccounts();
+              console.log("Accounts retrieved:", accounts);
+              if (accounts.length === 0) {
+                throw new Error("No accounts available in MetaMask");
+              }
+              setAccount(accounts[0]);
+              console.log("Creating contract instance with address:", contractAddress);
+              const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
+              setContract(contractInstance);
+              console.log("Initialization complete");
+            } catch (error) {
+              console.error("Error initializing web3:", error);
+              alert("Initialization failed: " + error.message);
+            }
+          } else {
+            console.error("MetaMask not detected");
+            alert("Please install MetaMask!");
+          }
+        }
+        init();
+      }, []);
+
+      useEffect(() => {
+        async function checkRsvpStatus() {
+          if (contract && account && events.length > 0) {
+            const status = {};
+            for (let i = 1; i <= events.length; i++) {
+              try {
+                const hasRsvped = await contract.methods.hasUserRSVPed(i, account).call();
+                status[i] = hasRsvped;
+              } catch (error) {
+                console.error(`Error checking RSVP status for event ${i}:`, error);
+              }
+            }
+            setRsvpStatus(status);
+            console.log("RSVP status updated:", status);
+          }
+        }
+        checkRsvpStatus();
+      }, [contract, account, events]);
+
+      const connectWallet = async () => {
+        if (window.ethereum) {
+          try {
+            console.log("Connecting wallet...");
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            const accounts = await web3.eth.getAccounts();
+            console.log("Connected account:", accounts[0]);
+            setAccount(accounts[0]);
+            await window.ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: "0x539" }], // 1337 in hex
+            });
+            console.log("Switched to chain ID 1337");
+          } catch (error) {
+            console.error("Error connecting wallet:", error);
+            alert("Failed to connect wallet: " + error.message);
+          }
+        } else {
+          console.error("MetaMask not detected");
+          alert("Please install MetaMask!");
+        }
+      };
+
+      const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          setSelectedFile(file);
+          const url = URL.createObjectURL(file);
+          setImageUrl(url);
+          console.log("File selected:", file.name, "URL:", url);
+        } else {
+          setSelectedFile(null);
+          setImageUrl("");
+        }
+      };
+
+      const createEvent = async () => {
+        console.log("createEvent triggered", { eventName, votingOptions, imageUrl, contract, account });
+        if (!contract || !account) {
+          console.error("Contract or account not set", { contract, account });
+          alert("Cannot create event: Wallet not connected or contract not initialized");
+          return;
+        }
+        const options = votingOptions.split(",").map(opt => opt.trim()).filter(opt => opt !== "");
+        if (!eventName || options.length === 0) {
+          console.error("Invalid input", { eventName, options, imageUrl });
+          alert("Please enter an event name and at least one voting option");
+          return;
+        }
+        try {
+          console.log("Calling createEvent on contract", { eventName, options, imageUrl });
+          await contract.methods.createEvent(eventName, options, imageUrl).send({ from: account });
+          console.log("Event created, fetching all events");
+          const allEvents = await contract.methods.getAllEvents().call({ from: account });
+          setEvents(allEvents);
+          setEventName("");
+          setVotingOptions("");
+          setSelectedFile(null);
+          setImageUrl("");
+          alert("Event created successfully!");
+        } catch (error) {
+          console.error("Error creating event:", error);
+          alert("Failed to create event: " + error.message);
+        }
+      };
+
+      const rsvpToEvent = async (eventId) => {
+        console.log("rsvpToEvent triggered", { eventId, contract, account });
+        if (!contract || !account) {
+          console.error("Contract or account not set", { contract, account });
+          alert("Cannot RSVP: Wallet not connected or contract not initialized");
+          return;
+        }
+        try {
+          console.log("Calling rsvp on contract", { eventId });
+          await contract.methods.rsvp(eventId).send({
+            from: account,
+            value: web3.utils.toWei("0.1", "ether")
+          });
+          setRsvpStatus(prev => ({ ...prev, [eventId]: true }));
+          console.log("RSVP successful, updated status for event", eventId);
+          alert("RSVP successful!");
+        } catch (error) {
+          console.error("Error RSVPing:", error);
+          alert("Failed to RSVP: " + error.message);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-gray-100 py-0">
+          <div className="navbar-box sticky bg-black top-0 z-1000">
+            <div className="max-w-4xl mx-auto bg-black px-6 py-4 flex items-center justify-between">
+              <h1 className="text-3xl font-bold bg-black text-white">Events DApp</h1>
+              {account && <p className="text-sm text-white">Connected: {account.slice(0, 6)}...{account.slice(-4)}</p>}
+            </div>
           </div>
-          <div id="content" style="display: none;">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Votes</th>
-                </tr>
-              </thead>
-              <tbody id="candidatesResults">
-              </tbody>
-            </table>
-            <hr/>
-            <form onSubmit="App.castVote(); return false;">
-              <div class="form-group">
-                <label for="candidatesSelect">Select Candidate</label>
-                <select class="form-control" id="candidatesSelect">
-                </select>
+          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6 mt-6">
+            {!account ? (
+              <button
+                onClick={connectWallet}
+                className="w-full bg-white text-black border border-gray-300 py-3 px-6 rounded-lg slide-button"
+              >
+                Connect MetaMask
+              </button>
+            ) : (
+              <div>
+                <div className="bg-gray-50 p-6 rounded-lg mb-8">
+                  <h2 className="text-xl font-semibold text-black mb-6">Create Event</h2>
+                  <input
+                    type="text"
+                    value={eventName}
+                    onChange={(e) => setEventName(e.target.value)}
+                    placeholder="Event Name"
+                    className="w-full p-3 mb-4 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-400"
+                  />
+                  <input
+                    type="text"
+                    value={votingOptions}
+                    onChange={(e) => setVotingOptions(e.target.value)}
+                    placeholder="Event Themes and Description (comma-separated)"
+                    className="w-full p-3 mb-4 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-400"
+                  />
+                  <label className="file-input-label mb-4">
+                    {selectedFile ? selectedFile.name : "Select Event Image"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="file-input"
+                    />
+                  </label>
+                  {imageUrl && (
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={createEvent}
+                      className="bg-white text-black border border-gray-300 py-3 px-6 rounded-lg slide-button"
+                    >
+                      Create Event
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!contract) return;
+                        try {
+                          const allEvents = await contract.methods.getAllEvents().call({ from: account });
+                          setEvents(allEvents);
+                          console.log("Fetched events:", allEvents);
+                        } catch (error) {
+                          console.error("Error fetching events:", error);
+                          alert("Failed to fetch events: " + error.message);
+                        }
+                      }}
+                      className="bg-white text-black border border-gray-300 py-3 px-6 rounded-lg slide-button"
+                    >
+                      Show Events
+                    </button>
+                  </div>
+                </div>
+                <h2 className="text-xl font-semibold text-black mb-6">Events</h2>
+                {events.length === 0 ? (
+                  <p className="text-gray-600">No events available. Click Fetch Events to load.</p>
+                ) : (
+                  events.map((event, index) => (
+                    <div key={index} className="bg-gray-50 p-6 rounded-lg mb-6">
+                      {event.imageUrl && (
+                        <img
+                          src={event.imageUrl}
+                          alt={event.name}
+                          className="w-full h-48 object-cover rounded-lg mb-4"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      )}
+                      <h3 className="text-lg font-medium text-black">{event.name}</h3>
+                      <p className="text-sm text-gray-600">Creator: {event.creator}</p>
+                      <p className="text-sm text-gray-600">RSVP Fee: {(event.rsvpFee / 1e18).toFixed(1)} ETH</p>
+                      <p className="text-sm text-gray-600">Voting Options: {event.votingOptions.join(", ")}</p>
+                      {rsvpStatus[index + 1] ? (
+                        <button
+                          className="mt-4 bg-gray-200 text-gray-600 py-2 px-4 rounded-lg cursor-not-allowed"
+                          disabled
+                        >
+                          See you there!
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => rsvpToEvent(index + 1)}
+                          className="mt-4 bg-white text-black border border-gray-300 py-2 px-4 rounded-lg slide-button"
+                        >
+                          ATTEND (0.1 ETH)
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
-              <button type="submit" class="btn btn-primary">Vote</button>
-              <hr />
-            </form>
-            <p id="accountAddress" class="text-center"></p>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+      );
+    }
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/web3.min.js"></script>
-    <script src="js/truffle-contract.js"></script>
-    <script src="js/app.js"></script>
-  </body>
+    const root = createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
 </html>
