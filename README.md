@@ -234,4 +234,4 @@ Open a Pull Request.
 ## License
 MIT License. See LICENSE for details.
 ## Contact
-For questions, open an issue or contact YOUR_USERNAME.
+For questions, open an issue or contact @httpssans.
