@@ -22,7 +22,7 @@ A terminal (e.g., PowerShell, Git Bash, or any Unix shell)
 ## Setup Instructions
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/EventsDApp.git
+git clone https://github.com/httpssans/EventsDAPP.git
 cd EventsDApp
 ```
 
