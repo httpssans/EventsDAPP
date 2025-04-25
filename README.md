@@ -10,7 +10,7 @@ Image Support: Preloaded events use images from src/images, served via Vite alia
 Blockchain Transparency: All event data (name, creator, voting options, image URL) is stored on-chain for trustless access.
 
 ## Prerequisites
-To run this project locally, you’ll need:
+To run this project locally, we'll need:
 
 Node.js (v16 or later)
 npm (included with Node.js)
@@ -32,25 +32,12 @@ Install project dependencies (Vite, Web3.js, etc.)
 npm install
 ```
 
-### 3. Place Images
-Place the following images in src/images for preloaded events:
 
-wothy.jpeg
-patil.jpg
-upbars.jpg
-
-## Example (replace with actual image paths)
-```bash
-mkdir src/images
-copy C:\Users\sansk\Downloads\wothy.jpeg src/images\
-copy C:\Users\sansk\Downloads\patil.jpg src/images\
-copy C:\Users\sansk\Downloads\upbars.jpg src/images\
-```
-
-## Verify:
+### 3. Verify images:
 ```bash
 dir src/images
 ```
+(Common error for me)
 
 ### 4. Start Ganache
 Launch Ganache with:
