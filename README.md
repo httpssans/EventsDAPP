@@ -67,22 +67,16 @@ truffle migrate --reset
 The migration script (migrations/2_deploy_contracts.js) creates three preloaded events with images at /images/wothy.jpeg, /images/patil.jpg, /images/upbars.jpg.
 
 ### 7. Update Frontend
+In the console after truffke reset, we should see a contract address field as such:
+
+ == contract address:    <u>0xNewContractAddress<u> ==
+
+Copy the deployed EventRSVP contract address (e.g., 0xNewContractAddress) from the output.
 Update src/index.html with the contract address:
 
 Open src/index.html.
 Find:const contractAddress = "0xNewContractAddress";
-    transaction hash:    0xTransaction
-    Blocks: 0            Seconds: 0
-   == contract address:    <u>0xNewContractAddress<u> ==
-    block number:        3
-    block timestamp:     1745605789
-    account:             0xNewAccountAddress
-    balance:             99.993537021205562804
-    gas used:            1746123 (0x1aa4cb)
-    gas price:           3.177688086 gwei
-    value sent:          0 ETH
-    total cost:          0.005548634253790578 ETH
-Copy the deployed EventRSVP contract address (e.g., 0xNewContractAddress) from the output.
+
 Replace with the actual address from truffle migrate --reset.
 
 ### 8. Start the Frontend
