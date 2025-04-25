@@ -1,5 +1,5 @@
 # Events DApp
-A decentralized application (DApp) for managing event RSVPs on the Ethereum blockchain. Users can create events with voting options and images, RSVP with a 0.1 ETH fee, and view event details transparently. Built with Solidity, React, Tailwind CSS, Web3.js, and Vite.
+A decentralized application (DApp) for managing event RSVPs on the Ethereum blockchain. Users can create events with voting options and images, RSVP with a 0.1 ETH fee, and view event details transparently. Built with Solidity, React, Tailwind CSS, JSX, Web3.js, and Vite.
 
 ## Features
 
