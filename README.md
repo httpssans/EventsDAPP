@@ -12,11 +12,16 @@ Blockchain Transparency: All event data (name, creator, voting options, image UR
 ## Prerequisites
 To run this project locally, we'll need:
 
-Node.js (v16 or later)
-npm (included with Node.js)
-MetaMask browser extension
-Ganache for a local Ethereum blockchain
+Node.js (Node v18.20.8 recommended) [https://nodejs.org/en/download]
+
+npm (included with Node.js) 
+
+MetaMask browser extension [https://metamask.io/en-GB/download]
+
+Ganache for a local Ethereum blockchain [https://archive.trufflesuite.com/ganache/]
+
 Truffle (npm install -g truffle)
+
 A terminal (e.g., PowerShell, Git Bash, or any Unix shell)
 
 ## Setup Instructions
@@ -178,6 +183,7 @@ npm run dev
 
 Ensure the network is Ganache (Chain ID 1337, RPC http://127.0.0.1:7545).
 Verify the account has ETH (import a Ganache account).
+Ensure the connected account is the same as the one used in the network
 
 ## Contract Errors
 
